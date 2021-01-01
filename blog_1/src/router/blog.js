@@ -51,12 +51,14 @@ const handleBlogRouter = (req, res) => {
 
   if(method === 'POST' && path === '/api/blog/update') {
     const result = updateBlog(id, req.body)
-    if(result) {
-      return new SuccessModel()
-    }
-    else {
-      return new ErrorModel('update faild')
-    }
+    return result.then((val) => {
+      if(val) {
+        return new SuccessModel()
+      }
+      else {
+        return new ErrorModel('update faild')
+      }
+    })
   }
 }
 
