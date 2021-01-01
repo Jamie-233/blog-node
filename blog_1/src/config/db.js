@@ -1,7 +1,8 @@
-const env = proecess.env.NODE_ENV
+const env = process.env.NODE_ENV
+
 let MYSQL_CONF
 
-if(env === 'dev') {
+if(env === 'development') {
   MYSQL_CONF = {
     host: 'localhost',
     user: 'root',

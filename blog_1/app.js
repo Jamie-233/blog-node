@@ -36,22 +36,24 @@ const getPostData = (req) => {
 const serverHandle = (req, res) => {
   res.setHeader('Content-type', 'application/json')
 
-  // 获取 path
+  // get path
   const url = req.url
   req.path = url.split('?')[0]
 
-  // 解析 query
+  // parsing query
   req.query = queryString.parse(url.split('?')[1])
 
-  // 处理 post data
+  // process post data
   getPostData(req).then((postData) => {
     req.body = postData
 
-    const blogData = handleBlogRouter(req, res)
-    if(blogData) {
-      res.end(
-        JSON.stringify(blogData)
-      )
+    const blogResult = handleBlogRouter(req, res)
+    if(blogResult) {
+      blogResult.then((blogData) => {
+        res.end(
+          JSON.stringify(blogData)
+        )
+      })
       return
     }
 
