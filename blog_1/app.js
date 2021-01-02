@@ -1,7 +1,15 @@
 const queryString = require('querystring')
-
 const handleBlogRouter = require('./src/router/blog')
 const handleUserRouter = require('./src/router/user')
+
+const SESSION_DATA = {}
+
+const getCookieExprires = () => {
+  const d = new Date()
+  d.setTime(d.getTime() + (24 * 60 * 60 * 1000))
+  console.log('d.toGMTString is ', d.toGMTString())
+  return d.toGMTString()
+}
 
 const getPostData = (req) => {
   return new Promise((resolve, reject) => {
@@ -43,6 +51,32 @@ const serverHandle = (req, res) => {
   // parsing query
   req.query = queryString.parse(url.split('?')[1])
 
+  req.cookie = {}
+  const cookieStr = req.headers.cookie || ''
+  cookieStr.split(';').forEach((item) => {
+    if(!item) return
+    const arr = item.split('=')
+    const key = arr[0].trim()
+    const val = arr[1].trim()
+    console.log('61', key, val)
+    req.cookie[key] = val
+  })
+
+  // process session
+  let needSession = false
+  let userId = req.cookie.userid
+  if(userId) {
+    if(!SESSION_DATA[userId]) {
+      SESSION_DATA[userId] = {}
+    }
+  }
+  else {
+    needSession = true
+    userId = `${Date.now()}_${Math.random()}`
+    SESSION_DATA[userId] = {}
+  }
+  req.session = SESSION_DATA[userId]
+
   // process post data
   getPostData(req).then((postData) => {
     req.body = postData
@@ -50,6 +84,9 @@ const serverHandle = (req, res) => {
     const blogResult = handleBlogRouter(req, res)
     if(blogResult) {
       blogResult.then((blogData) => {
+        if(needSession) {
+          res.setHeader('Set-Cookie', `userid=${userId}; path=/; httpOnly; expires=${getCookieExprires()}`)
+        }
         res.end(
           JSON.stringify(blogData)
         )
@@ -60,6 +97,9 @@ const serverHandle = (req, res) => {
     const userResult = handleUserRouter(req, res)
     if(userResult) {
       userResult.then((userData) => {
+        if(needSession) {
+          res.setHeader('Set-Cookie', `userid=${userId}; path=/; httpOnly; expires=${getCookieExprires()}`)
+        }
         res.end(
           JSON.stringify(userData)
         )
