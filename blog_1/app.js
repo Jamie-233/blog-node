@@ -58,13 +58,13 @@ const serverHandle = (req, res) => {
     const arr = item.split('=')
     const key = arr[0].trim()
     const val = arr[1].trim()
-    console.log('61', key, val)
+    console.log(key, val)
     req.cookie[key] = val
   })
 
   // process session
-  let needSession = false
   let userId = req.cookie.userid
+  let needSession = false
   if(userId) {
     if(!SESSION_DATA[userId]) {
       SESSION_DATA[userId] = {}
@@ -76,6 +76,7 @@ const serverHandle = (req, res) => {
     SESSION_DATA[userId] = {}
   }
   req.session = SESSION_DATA[userId]
+  req.sessionId = userId
 
   // process post data
   getPostData(req).then((postData) => {
