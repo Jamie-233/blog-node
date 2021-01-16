@@ -1,6 +1,7 @@
 const queryString = require('querystring')
 const handleBlogRouter = require('./src/router/blog')
 const handleUserRouter = require('./src/router/user')
+const handleTransferRouter = require('./src/router/transfer')
 
 const SESSION_DATA = {}
 
@@ -58,7 +59,6 @@ const serverHandle = (req, res) => {
     const arr = item.split('=')
     const key = arr[0].trim()
     const val = arr[1].trim()
-    console.log(key, val)
     req.cookie[key] = val
   })
 
@@ -103,6 +103,24 @@ const serverHandle = (req, res) => {
         }
         res.end(
           JSON.stringify(userData)
+        )
+      })
+      return
+    }
+
+    const transferResult = handleTransferRouter(req, res)
+    console.log('1111', transferResult)
+    if(transferResult) {
+      transferResult.then((transData) => {
+        console.log('transData', transData)
+        const {to_user, money} = transData;
+        let info = `jekin 向 ${to_user} 转了 ${money} 个BTC`
+
+        if(needSession) {
+          res.setHeader('Set-Cookie', `session=${userId}; path=/; httpOnly; expires=${getCookieExprires()}`)
+        }
+        res.end(
+          JSON.stringify(info)
         )
       })
       return
